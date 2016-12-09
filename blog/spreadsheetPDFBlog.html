@@ -1,0 +1,93 @@
+<!-- PDF/A as a preferred, sustainable format for spreadsheets? -->
+<p>Earlier this week the National Archives of the Netherlands (NANeth) published a <a href="http://www.nationaalarchief.nl/sites/default/files/docs/na_rapport_voorkeursformaten-web_0.pdf">report on preferred file formats</a>. It gives an overview of NANeth's 'preferred' and 'acceptable' formats for 9 content categories, and also explains the reasoning behind the selected formats. Even though in Dutch language only, the report is well worth a look. However, I found a few of the choices a little surprising, especially the 'spreadsheet' category for which it lists the following 'preferred' and 'acceptable' formats:</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Preferred</th>
+<th style="text-align: left;">Acceptable</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">ODS, CSV, PDF/A</td>
+<td style="text-align: left;">XLS, XLSX</td>
+</tr>
+</tbody>
+</table>
+<p>The report gives the following explanation on the 'preferred' formats (translated from Dutch):</p>
+<blockquote>
+<ul>
+<li>ODS - ODS is part of the OpenDocument standard (ODF, NEN-ISO/IEC 26300:2007), which is listed as the standard for office documents on the <a href="https://www.forumstandaardisatie.nl/lijst-open-standaarden/in_lijst/verplicht-pas-toe-leg-uit">'act or explain' list</a> of 'Forum Standaardisatie'<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></li>
+<li>CSV - for the storage of non-interactive information in cells, a comma-delimited (.csv) text file can be used instead of a spreadsheet</li>
+<li>PDF/A - PDF/A is a widely used open standard and a NEN/ISO standard (ISO:19005). PDF/A-1 and PDF/A-2 are part of the 'act or explain' list of 'Forum Standaardisatie'. Note: some (interactive) functionality will not be available after conversion to PDF/A. If this functionality is deemed essential, this will be a reason for not choosing PDF/A</li>
+</ul>
+</blockquote>
+<p>In the remainder of this blog post I will pinpoint some problems of the choice of PDF/A and its justification.</p>
+<!--more-->
+<h2 id="demo-spreadsheet">Demo spreadsheet</h2>
+<p>To illustrate my arguments, I created a <a href="https://github.com/bitsgalore/spreadsheetsPDF/raw/master/demoNumbersCalculations.xlsx">simple demo spreadsheet</a> in xlsx format (created in Microsoft Excel 2010). It contains two columns:</p>
+<ul>
+<li>Column A: random number between 0 and 100 (as static values)</li>
+<li><p>Column B: formula that takes the value from Column A and adds its square root:</p>
+<p><code>=A3 + SQRT(A3)</code></p></li>
+</ul>
+<h2 id="displayed-precision-not-equal-to-stored-precision">Displayed precision not equal to stored precision</h2>
+<p>Without applying any special formatting, this is what the spreadsheet looks like in MS Excel 2010:</p>
+<figure>
+<img src="http://openpreservation.org/wp-content/uploads/2016/12/numbers2.png" />
+</figure>
+<p>The first thing of interest here is that the displayed values in the cells are different from those that are actually stored! For example, the value that is shown in cell A1 is:</p>
+<pre><code> 52.06077146 </code></pre>
+<p>Note that 8 decimal places are shown. But by looking at the formula bar you can see a different value:</p>
+<pre><code> 52.0607714623856 </code></pre>
+<p>which contains 13 decimal places. Since Excel internally <a href="https://en.wikipedia.org/wiki/Numeric_precision_in_Microsoft_Excel">stores numbers at a precision of 15 significant figures</a>, only the latter corresponds to the actual (stored) value.</p>
+<h2 id="loss-of-precision-after-exporting-to-pdfa">Loss of precision after exporting to PDF/A</h2>
+<p>I exported the spreadsheet to PDF/A-1a using Acrobat PDFMaker. The result can be found <a href="https://github.com/bitsgalore/spreadsheetsPDF/raw/master/demoNumbersCalculations.pdf">here</a>. Below is what the PDF looks like when opened in Adobe Acrobat:</p>
+<figure>
+<img src="http://openpreservation.org/wp-content/uploads/2016/12/numbers2_pdfa.png" />
+</figure>
+<p>So, the PDF only contains the values at Excel's displayed precision (in this case typically 9-10 significant figures), and the remaining precision got lost in the conversion.</p>
+<p>In addition, unlike the source spreadsheet, the PDF <em>only</em> contains static numbers. This means that information about the relation between the values in Columns A and B (i.e. the formula) is completely lost.</p>
+<h2 id="loss-of-precision-after-exporting-to-csv">Loss of precision after exporting to CSV</h2>
+<p>Interestingly, exporting to a comma-delimited text file resulted in the same loss of precision! See <a href="https://github.com/bitsgalore/spreadsheetsPDF/blob/master/demoNumbersCalculations.csv">the exported CSV file here</a>. For brevity I won't go into any further detail on CSV, but it's important to be aware that this issue exists.</p>
+<h2 id="effects-of-cell-formatting">Effects of cell formatting</h2>
+<p>A possible way around the rounding issue would be to use Excel's <em>Format Cells</em> dialog, which allows one to set a fixed number of decimal places to be used for display:</p>
+<figure>
+<img src="http://openpreservation.org/wp-content/uploads/2016/12/formatcells.png" />
+</figure>
+<p>This is also less than ideal, if only for the reason that a fixed value will result in the display of non-significant figures. For example, applying a setting of 14 decimal places to the value in cell A1 results in:</p>
+<pre><code> 52.06077146238560</code></pre>
+<p>which is different from the stored value:</p>
+<pre><code> 52.0607714623856 </code></pre>
+<p>Moreover, this approach gets extremely cumbersome for spreadsheets that contain numbers at different precisions (e.g. it is pretty common to have one column with integer values, and another one with floating-point numbers).</p>
+<p>In practice, Excel's number formatting is often used to <em>reduce</em> the number of displayed digits (e.g. to make the columns more visually pleasing, or to avoid messy output when printing). <a href="https://github.com/bitsgalore/spreadsheetsPDF/raw/master/demoDisplay2DigitsOnly.xlsx">Here's a version of the spreadsheet</a> where I adjusted the formatting to display two decimal places only, and <a href="https://github.com/bitsgalore/spreadsheetsPDF/raw/master/demoDisplay2DigitsOnly.pdf">here is the resulting PDF</a>. It looks like this:</p>
+<figure>
+<img src="http://openpreservation.org/wp-content/uploads/2016/12/formatcells_pdfa.png" />
+</figure>
+<p>So in this case even more information is lost!</p>
+<h2 id="interactive-or-dynamic">Interactive or dynamic?</h2>
+<p>The preferred formats document does acknowledge that PDF/A may not always be suited for spreadsheets, using the following statement (in Dutch):</p>
+<blockquote>
+<p>Let wel: bepaalde (interactieve) functionaliteit zal na omzetting naar PDF/A formaat niet meer beschikbaar zijn. Als deze functionaliteit als essentieel wordt beschouwd, is dit een reden om niet voor PDF/A te kiezen</p>
+</blockquote>
+<p>Which translates in English as:</p>
+<blockquote>
+<p>Note: some (interactive) functionality will not be available after conversion to PDF/A. If this functionality is deemed essential, this will be a reason for not choosing PDF/A</p>
+</blockquote>
+<p>This statement is problematic for various reasons. First, whether functionality is deemed 'essential' largely depends on the context and intended user base. By stressing the <em>interactive</em> aspect, the authors imply (perhaps unintentionally?) that any spreadsheets that do not take any interaction with a user can be safely converted to PDF/A. But what does 'interactive' mean in this context? Taking my earlier <a href="https://github.com/bitsgalore/spreadsheetsPDF/raw/master/demoNumbersCalculations.xlsx">sample spreadsheet</a> as an example: a user may 'interact' with that spreadsheet by changing the values in Column A, after which all values in Column B are recalculated. Does that make it interactive? If yes, applying the 'interactivity' criterion like this would cover <em>any</em> spreadsheet for which the value in any cell is dependent on one or more values in other cells. This applies to most spreadsheets, apart from those that only contain static data. But in that case a distinction between 'static' and 'dynamic' spreadsheets might be more useful<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>.</p>
+<h2 id="reading-pdfa-spreadsheets">Reading PDF/A spreadsheets</h2>
+<p>Finally, I'm quite puzzled how a PDF/A representation of a spreadsheet is meant to be read. Who are the intended users? What is the target software? What is the context? Sure enough a PDF may be sufficient for on-screen viewing, but what if a (future) user wants to recover the original row and column values? Excel is not capable of this (in fact it cannot even import a PDF at all)? What if someone wants to use the data for some actual calculations? Data extraction from PDF is notoriously difficult (hence the phrase <a href="https://twitter.com/search?q=%22pdf%20is%20where%20data%20goes%20to%20die%22&amp;src=typd">&quot;pdf is where data goes to die&quot;</a>), which is mainly due to the lack of structure of the format<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>.</p>
+<h2 id="concluding-remarks">Concluding remarks</h2>
+<p>The above observations only scrape the surface of the perils of using PDF for spreadsheet data. To be clear: there may be situations where <em>PDF/A</em> is a good (and possibly even the best) choice. For example, spreadsheets are often used for printable forms, and having these as a PDF/A representation may be perfectly fine<a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a>. Nevertheless, NANeth's recommendations on choosing between their 'preferred formats' appear to be suboptimal, because they do not take into account the purpose for which a spreadsheet was created, its content, its intended use and the intended (future) user(s). In particular, using 'interactivity' as the main criterion seems somewhat dangerous.</p>
+<h2 id="data">Data</h2>
+<p>The example files that are referred to in this blog post are all available here:</p>
+<p><a href="https://github.com/bitsgalore/spreadsheetsPDF" class="uri">https://github.com/bitsgalore/spreadsheetsPDF</a></p>
+<section class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Forum Standaardisatie is a Dutch government body that promotes the use of open standards in the public sector.<a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p>On a related note, it is well known that (formulae in) spreadsheets often contain errors, and that these can have major implications (there are numerous examples on the <a href="http://www.eusprig.org/horror-stories.htm"><em>Horror Stories</em> section</a> of the <a href="http://www.eusprig.org/">European Spreadsheet Risks Interest Group</a>). Once converted to PDF/A, such errors are impossible to detect.<a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p>Andy Jackson once compared this to <a href="https://twitter.com/anjacks0n/status/471242447813898242">&quot;reconstructing the cow from the burger&quot;</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p>Incidentally, spreadsheet forms can be highly interactive (e.g. by letting a user enter data by selecting a value from a drop-down list); this is again an indication that interactivity may not be a good criterion for deciding on PDF/A as a target format<a href="#fnref4">↩</a></p></li>
+</ol>
+</section>
