@@ -25,7 +25,7 @@ To illustrate my arguments, I created a [simple demo spreadsheet](https://github
 * Column A: random number between 0 and 100 (as static values)
 * Column B: formula that takes the value from Column A and adds its square root:
 
-    `=A3 + SQRT(A3)`
+    `=A2 + SQRT(A2)`
 
 ## Displayed precision not equal to stored precision
 
@@ -33,7 +33,7 @@ Without applying any special formatting, this is what the spreadsheet looks like
 
 ![](http://openpreservation.org/wp-content/uploads/2016/12/numbers2.png)
 
-The first thing of interest here is that the displayed values in the cells are different from those that are actually stored! For example, the value that is shown in cell A1 is:
+The first thing of interest here is that the displayed values in the cells are different from those that are actually stored! For example, the value that is shown in cell A2 is:
 
      52.06077146 
 
